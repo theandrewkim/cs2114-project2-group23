@@ -11,7 +11,9 @@ We are building Ride Match, which is a program that helps users choose which ren
 - We will not have methods all completed; just few methods at the moment
 
 Alper: 3. Integration of classes and Testing, debugging if necessary
+
 Andrew: 1. Write method stubs and class including main method
+
 Nikitha: 2. Complete methods, write test cases
 
 
