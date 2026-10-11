@@ -1,0 +1,16 @@
+Parameter type revised: 
+
+<Vehicle> 
+
+mileage: int -> double
+- mileage can have decimals
+
+<Car>
+
+transmission: String -> boolean 
+- this is indicating either the car is auto or manual. true for auto, false for manual
+
+auto: boolean -> int
+- this indicates the level of autopilot from 0-5, not a yes/no question if car has autopilot
+- refer to our scope doc for specific criteria
+of autopilot levels 
