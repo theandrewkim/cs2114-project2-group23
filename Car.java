@@ -43,6 +43,11 @@ public class Car extends Vehicle
     }
     
     public String toString() {
-        return null;
+        return super.toString()
+            + ", carType=" + carType
+            + ", eco=" + eco
+            + ", transmission=" + transmission
+            + ", autoPilot=" + autoPilot;
+        
     }
 }

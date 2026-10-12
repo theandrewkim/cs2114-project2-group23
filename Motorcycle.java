@@ -23,7 +23,8 @@ public class Motorcycle extends Vehicle
     }
     
     public String toString() {
-        return null;
+        return super.toString()
+            + + ", motorcycleType=" + motorcycleType;
     }
     
 }   

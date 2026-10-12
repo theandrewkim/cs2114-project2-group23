@@ -2,6 +2,8 @@ package rentals;
 public class Vehicle
 {
     //~ Fields ................................................................
+    private static int nextId = 1;
+    private final int id;
     private int year;
     private String name;
     private String maker;
@@ -14,6 +16,7 @@ public class Vehicle
     //~ Constructors ..........................................................
     
     public Vehicle(int year, String name, String maker, int cylinders, int pax, double mileage, double price, double tankSize, String fuelType) {
+        this.id = nextId++;
         this.year = year;
         this.name = name;
         this.maker = maker;
@@ -25,7 +28,11 @@ public class Vehicle
         this.fuelType = fuelType;
     }
     //~Public  Methods ........................................................
-
+    
+    public int getId() {
+        return id;
+    }
+    
     public int getYear() {
         return year;
     }
@@ -103,11 +110,37 @@ public class Vehicle
     }
     
     public String toString() {
-        return null;
+        return getVehicleType() + " #" + id
+            + ": year=" + year
+            + ", name=" + name
+            + ", maker=" + maker
+            + ", cylinders=" + cylinders
+            + ", pax=" + pax
+            + ", mileage=" + mileage
+            + ", price=" + price
+            + ", tankSize=" + tankSize
+            + ", fuelType=" + fuelType; 
     }
     
     public boolean equals(Object object) {
-        return false;
+        if (this == object) {
+            return true;
+        }
+        
+        if (!(object instanceof Vehicle)) {
+            return false;
+        }
+        
+        if (object == null || this.getClass() != object.getClass()) {
+            return false;
+        }
+        
+        Vehicle other = (Vehicle) object;
+        return this.id == other.id; 
+    }
+    
+    public int hashCode() {
+        return Integer.hashCode(id);
     }
     
     
