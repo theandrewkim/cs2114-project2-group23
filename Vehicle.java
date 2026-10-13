@@ -13,6 +13,18 @@ public class Vehicle
     private double price;
     private double tankSize;
     private String fuelType;
+    
+    
+    //static max values
+    public static int MIN_YEAR = 1900;
+    public static int MAX_YEAR = 2027;
+    public static int MAX_CYLINDERS = 16;
+    public static int MAX_PAX = 15;
+    public static double MAX_MILEAGE = 500000.0;
+    public static double MAX_PRICE = 1000000.0;
+    public static double MAX_TANK = 60.0;
+    public static String[] FUEL_TYPES = {"Gasoline", "Diesel", "Electric", "Hybrid"};
+        
     //~ Constructors ..........................................................
     
     public Vehicle(int year, String name, String maker, int cylinders, int pax, double mileage, double price, double tankSize, String fuelType) {
@@ -138,7 +150,7 @@ public class Vehicle
         Vehicle other = (Vehicle) object;
         return this.id == other.id; 
     }
-    
+    a
     public int hashCode() {
         return Integer.hashCode(id);
     }

@@ -3,6 +3,7 @@ public class Motorcycle extends Vehicle
 {
     //~ Fields ................................................................
     private String motorcycleType;
+    private String[] MOTORCYCLE_TYPES = {"Sport", "Cruiser", "Touring", "Standard", "Dirt"};
     //~ Constructors ..........................................................
 
     public Motorcycle(int year, String name, String maker, int cylinders, int pax, double mileage, double price, double tankSize, String fuelType, String motorcycleType) {
@@ -23,8 +24,7 @@ public class Motorcycle extends Vehicle
     }
     
     public String toString() {
-        return super.toString()
-            + + ", motorcycleType=" + motorcycleType;
+        return super.toString() + ", motorcycleType=" + motorcycleType;
     }
     
 }   

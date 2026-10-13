@@ -5,6 +5,8 @@ public class Car extends Vehicle
     private String carType;
     private int transmission; //0 for auto, 1 for manual
     private int autoPilot;
+    private String[] CAR_TYPES = {"Sedan", "SUV", "Coupe", "Hatchback", "Truck", "Van"};
+
     
     //~ Constructors ..........................................................
     public Car(int year, String name, String maker, int cylinders, int pax, double mileage, double price, double tankSize, String fuelType, String carType, int transmission, int autoPilot) {
@@ -45,7 +47,6 @@ public class Car extends Vehicle
     public String toString() {
         return super.toString()
             + ", carType=" + carType
-            + ", eco=" + eco
             + ", transmission=" + transmission
             + ", autoPilot=" + autoPilot;
         
