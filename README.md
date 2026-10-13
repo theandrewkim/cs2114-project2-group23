@@ -19,9 +19,12 @@ Nikitha: 2. Complete methods, write test cases
 
 **Reflections:  what changed between your specification and what you actually built**
 
+- we have changed parameter types for some parameters, since we discovered we have set the type wrong
+- we have removed the parameter "eco": this was meant to help user make ethical choices, but the criteria was quite vague - is the vehicle simply eco/non-eco? Can we categorize?
 
 **Next Steps: what you will do next to extend this prototype toward the final**
 
+- make sure our code can block invalid inputs
 
 
 --End of work by October 14, 2026--
