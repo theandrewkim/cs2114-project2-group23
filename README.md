@@ -53,3 +53,20 @@ All 150 of our current tests pass.
 
 
 --End of work by October 14, 2026--
+
+
+**Attribution of Final Build & Presentation**
+
+The work process will go the opposite way from the prototype this time. 
+Alper, who was in charge of debugging and integration, will implement features that doesn't work yet. 
+Nikitha, who was in charge of completing methods and writing test cases, will take over the code Alper wrote and write test cases for those. Debug and fix if needed.
+Andrew, who was in charge of building the main method and writing method stubs, will overlook the completed codes and integrate. Additionally, he will implement one of the stretch goals: import data via file
+
+Presentation: 
+- Andrew: What didn't go well, Gen-AI delegation
+- Alper: What did go well, What would we do differently
+- Nikitha: What we built, and run demo
+
+
+
+--End of work by October 21, 2026--
