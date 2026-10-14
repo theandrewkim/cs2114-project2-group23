@@ -2,57 +2,51 @@ package rentals;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 
 /**
  * A generic chain of linked nodes. Use it as the storage inside your own
- * classes, and extend or modify it as your project needs. This class owns
- * storage only: nodes, the head reference, and the count. It contains no
- * application logic. A class that needs a collection should hold a LinkedChain
- * field and call its methods. add() places the new entry at the FRONT of the
- * chain, so entries added with add() come back from toArray() in reverse order
- * of insertion. addToEnd() preserves insertion order. Time complexity, where n
- * is the number of entries: add O(1) addToEnd O(n) remove() O(1) remove(T) O(n)
- * clear O(1) get O(n) contains O(n) count O(n) size O(1) isEmpty O(1) toArray
- * O(n)
+ * classes. This class owns storage only: nodes, the head and tail references,
+ * and the count. It contains no application logic. A class that needs a
+ * collection should hold a LinkedChain field and call its methods.
+ *
+ * Group 23 changes from the CS 2114 starter: add() now appends at the END of
+ * the chain using a tail reference, so entries come back (from get(),
+ * toArray(), iteration and toString()) in the order they were added. The class
+ * implements ChainInterface, which extends Iterable, so callers can use a
+ * for-each loop.
+ *
+ * Time complexity, where n is the number of entries: add O(1), remove() O(1),
+ * remove(T) O(n), clear O(1), get O(n), contains O(n), count O(n), size O(1),
+ * isEmpty O(1), toArray O(n), iterator O(1) to create and O(n) for a full pass.
  *
  * @author CS 2114 Staff
- * @version September 2026
+ * @author Andrew Kim, Nikitha Nivas, Alper Sheker (modifications)
+ * @version Oct 14, 2026
  * @param <T>
  *            the type of entries stored in the chain
  */
 public class LinkedChain<T>
+        implements ChainInterface<T>
 {
-    private Node<T> firstNode; // reference to the first node, or null
-    private int numberOfEntries; // number of nodes in the chain
+    // ~ Fields ................................................................
+
+    private Node<T> head; // first node, or null when empty
+    private Node<T> tail; // last node, or null when empty
+    private int size; // number of nodes in the chain
+
+    // ~ Constructors ..........................................................
 
     /**
      * Creates an empty chain.
      */
     public LinkedChain()
     {
-        firstNode = null;
-        numberOfEntries = 0;
+        head = null;
+        tail = null;
+        size = 0;
     }
 
-
-    /**
-     * Adds a new entry to the front of this chain.
-     *
-     * @param newEntry
-     *            the object to be added; must not be null
-     * @return true
-     * @throws IllegalArgumentException
-     *             if newEntry is null
-     */
-    public boolean add(T newEntry)
-    {
-        requireNonNull(newEntry);
-        firstNode = new Node<T>(newEntry, firstNode);
-        numberOfEntries++;
-        return true;
-    }
-
+    // ~ Public Methods ........................................................
 
     /**
      * Adds a new entry to the end of this chain.
@@ -63,24 +57,21 @@ public class LinkedChain<T>
      * @throws IllegalArgumentException
      *             if newEntry is null
      */
-    public boolean addToEnd(T newEntry)
+    @Override
+    public boolean add(T newEntry)
     {
         requireNonNull(newEntry);
         Node<T> newNode = new Node<T>(newEntry);
-        if (firstNode == null)
+        if (head == null)
         {
-            firstNode = newNode;
+            head = newNode;
         }
         else
         {
-            Node<T> current = firstNode;
-            while (current.next != null)
-            {
-                current = current.next;
-            }
-            current.next = newNode;
+            tail.next = newNode;
         }
-        numberOfEntries++;
+        tail = newNode;
+        size++;
         return true;
     }
 
@@ -90,46 +81,56 @@ public class LinkedChain<T>
      *
      * @return the removed entry, or null if the chain is empty
      */
+    @Override
     public T remove()
     {
-        if (firstNode == null)
+        if (head == null)
         {
             return null;
         }
-        T result = firstNode.data;
-        firstNode = firstNode.next;
-        numberOfEntries--;
+        T result = head.data;
+        head = head.next;
+        if (head == null)
+        {
+            tail = null;
+        }
+        size--;
         return result;
     }
 
 
     /**
-     * Removes the first occurrence of a given entry from this chain.
+     * Removes the first occurrence of a given entry from this chain. If the
+     * last node is removed, tail moves back to the new last node.
      *
      * @param anEntry
      *            the entry to be removed
      * @return true if the removal was successful, or false if not
      */
+    @Override
     public boolean remove(T anEntry)
     {
-        if (anEntry == null || firstNode == null)
+        if (anEntry == null || head == null)
         {
             return false;
         }
-        if (anEntry.equals(firstNode.data))
+        if (anEntry.equals(head.data))
         {
-            firstNode = firstNode.next;
-            numberOfEntries--;
+            remove();
             return true;
         }
-        Node<T> previous = firstNode;
-        Node<T> current = firstNode.next;
+        Node<T> previous = head;
+        Node<T> current = head.next;
         while (current != null)
         {
             if (anEntry.equals(current.data))
             {
                 previous.next = current.next;
-                numberOfEntries--;
+                if (current == tail)
+                {
+                    tail = previous;
+                }
+                size--;
                 return true;
             }
             previous = current;
@@ -142,10 +143,12 @@ public class LinkedChain<T>
     /**
      * Removes all entries from this chain.
      */
+    @Override
     public void clear()
     {
-        firstNode = null;
-        numberOfEntries = 0;
+        head = null;
+        tail = null;
+        size = 0;
     }
 
 
@@ -159,15 +162,15 @@ public class LinkedChain<T>
      *             if index is negative or index is greater than or equal to
      *             size()
      */
+    @Override
     public T get(int index)
     {
-        if (index < 0 || index >= numberOfEntries)
+        if (index < 0 || index >= size)
         {
             throw new IndexOutOfBoundsException(
-                "Index " + index + " out of bounds for size "
-                    + numberOfEntries);
+                    "Index " + index + " out of bounds for size " + size);
         }
-        Node<T> current = firstNode;
+        Node<T> current = head;
         for (int i = 0; i < index; i++)
         {
             current = current.next;
@@ -183,6 +186,7 @@ public class LinkedChain<T>
      *            the entry to locate
      * @return true if the chain contains anEntry, or false if not
      */
+    @Override
     public boolean contains(T anEntry)
     {
         return count(anEntry) > 0;
@@ -196,6 +200,7 @@ public class LinkedChain<T>
      *            the entry to be counted
      * @return the number of times anEntry appears in the chain
      */
+    @Override
     public int count(T anEntry)
     {
         if (anEntry == null)
@@ -203,7 +208,7 @@ public class LinkedChain<T>
             return 0;
         }
         int frequency = 0;
-        Node<T> current = firstNode;
+        Node<T> current = head;
         while (current != null)
         {
             if (anEntry.equals(current.data))
@@ -221,9 +226,10 @@ public class LinkedChain<T>
      *
      * @return the integer number of entries in the chain
      */
+    @Override
     public int size()
     {
-        return numberOfEntries;
+        return size;
     }
 
 
@@ -232,9 +238,10 @@ public class LinkedChain<T>
      *
      * @return true if the chain has no entries, or false if not
      */
+    @Override
     public boolean isEmpty()
     {
-        return numberOfEntries == 0;
+        return size == 0;
     }
 
 
@@ -254,14 +261,14 @@ public class LinkedChain<T>
         {
             throw new IllegalArgumentException("Array must not be null");
         }
-        if (values.length < numberOfEntries)
+        if (values.length < size)
         {
             throw new IllegalArgumentException(
-                "Array of length " + values.length + " is too small for "
-                    + numberOfEntries + " entries");
+                    "Array of length " + values.length + " is too small for "
+                            + size + " entries");
         }
         int index = 0;
-        Node<T> current = firstNode;
+        Node<T> current = head;
         while (current != null)
         {
             values[index] = current.data;
@@ -273,29 +280,41 @@ public class LinkedChain<T>
 
 
     /**
-     * Returns a readable listing of the chain, first entry first, e.g. "[a, b,
-     * c]".
+     * Returns an iterator that walks the chain from head to tail.
+     *
+     * @return an iterator over the entries in this chain
+     */
+    @Override
+    public Iterator<T> iterator()
+    {
+        return new ChainIterator();
+    }
+
+
+    /**
+     * Returns every entry's toString(), one per line, head to tail. An empty
+     * chain gives an empty string.
      *
      * @return a string representation of this chain
      */
     @Override
     public String toString()
     {
-        StringBuilder sb = new StringBuilder("[");
-        Node<T> current = firstNode;
+        StringBuilder sb = new StringBuilder();
+        Node<T> current = head;
         while (current != null)
         {
             sb.append(current.data);
             if (current.next != null)
             {
-                sb.append(", ");
+                sb.append("\n");
             }
             current = current.next;
         }
-        sb.append("]");
         return sb.toString();
     }
 
+    // ~ Private Methods .......................................................
 
     /**
      * Rejects null entries.
@@ -312,6 +331,54 @@ public class LinkedChain<T>
             throw new IllegalArgumentException("Cannot add null to chain");
         }
     }
+
+    // ~ Nested Classes ........................................................
+
+    /**
+     * Walks the chain from head to tail, one node per call to next().
+     */
+    private class ChainIterator
+            implements Iterator<T>
+    {
+        private Node<T> nextNode; // node whose data next() returns
+
+        /**
+         * Creates an iterator positioned at the head of the chain.
+         */
+        private ChainIterator()
+        {
+            nextNode = head;
+        }
+
+
+        /**
+         * @return true if there is another entry to visit
+         */
+        @Override
+        public boolean hasNext()
+        {
+            return nextNode != null;
+        }
+
+
+        /**
+         * @return the next entry in the chain
+         * @throws NoSuchElementException
+         *             if every entry has already been visited
+         */
+        @Override
+        public T next()
+        {
+            if (nextNode == null)
+            {
+                throw new NoSuchElementException("No more entries");
+            }
+            T result = nextNode.data;
+            nextNode = nextNode.next;
+            return result;
+        }
+    }
+
 
     /**
      * A node in the chain. Holds one entry and a link to the next node.

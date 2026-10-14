@@ -1,4 +1,15 @@
 package rentals;
+/**
+ * The public contract for a chain of linked entries. LinkedChain implements
+ * this interface, and because it extends Iterable, any ChainInterface can be
+ * walked with a for-each loop.
+ *
+ * @author Andrew Kim, Nikitha Nivas, Alper Sheker
+ * @version Oct 14, 2026
+ * @param <T>
+ *            the type of entries stored in the chain
+ */
+
 public interface ChainInterface<T> extends Iterable<T>
 {
     /** Adds newEntry to the end of the chain. @return true if added */
