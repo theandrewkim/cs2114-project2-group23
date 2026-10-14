@@ -19,12 +19,14 @@ Nikitha: 2. Complete methods, write test cases
 
 **Reflections:  what changed between your specification and what you actually built**
 
-- we have changed parameter types for some parameters, since we discovered we have set the type wrong
-- we have removed the parameter "eco": this was meant to help user make ethical choices, but the criteria was quite vague - is the vehicle simply eco/non-eco? Can we categorize?
+- we have changed parameter types for some parameters, since we discovered we have set the type wrong. We have a separate document in this repository named "parameterTypeRevised" listing the revisions. 
+- we have removed the parameter "eco": this was a stretch goal and meant to help user make ethical choices, but the criteria was vague and hard to define at the moment with our knowledge - is the vehicle simply eco/non-eco? Can we categorize ecofriendly-ness?
 
 **Next Steps: what you will do next to extend this prototype toward the final**
 
-- make sure our code can block invalid inputs
+- make sure our code can block invalid inputs: we are working on tests so when a user inputs a invalid data, it rejects and prompts again for a valid input
+- We identified a bug caused by a small miscommunication between teammates: different method names and parameter types. We will integrate these and finalize these will work in our final program.
+- Alper will fix bugs such as different method names and parameters, Nikitha will write testcases, and Andrew will do final debugs and integration. 
 
 
 --End of work by October 14, 2026--
