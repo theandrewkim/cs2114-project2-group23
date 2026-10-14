@@ -21,6 +21,9 @@ Nikitha: 2. Complete methods, write test cases
 
 - we have changed parameter types for some parameters, since we discovered we have set the type wrong. We have a separate document in this repository named "parameterTypeRevised" listing the revisions. 
 - we have removed the parameter "eco": this was a stretch goal and meant to help user make ethical choices, but the criteria was vague and hard to define at the moment with our knowledge - is the vehicle simply eco/non-eco? Can we categorize ecofriendly-ness?
+- following the revised types, mileage is a double, transmission is an int (Car.AUTOMATIC = 0, Car.MANUAL = 1) and autopilot is an int level from 0-5, so searchTrans, searchAuto, promptTrans and promptAuto use int instead of String/boolean
+- after adding a vehicle, addItem() asks "Add another vehicle? (y/n)" (uses readYesNo) instead of calling itself recursively
+- searchResults() stops asking for more filters once nothing matches, and returns a new chain even when no filter is applied, so the inventory is never handed out to be changed
 
 **Next Steps: what you will do next to extend this prototype toward the final**
 
