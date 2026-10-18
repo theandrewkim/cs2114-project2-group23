@@ -1,0 +1,80 @@
+# Ride Match test list: a bigger set of vehicles for testing the import and
+# the search filters. Load it with menu option 6 ("Import vehicles from a file").
+#
+# Expected result: 27 vehicles imported, 10 lines skipped.
+#
+# Car,year,name,maker,cylinders,pax,mileage,price,tankSize,fuelType,carType,transmission,autoPilot
+# Motorcycle,year,name,maker,cylinders,pax,mileage,price,tankSize,fuelType,motorcycleType
+# transmission: 0 = automatic, 1 = manual. autoPilot: level 0-5.
+
+# ----- Cars: every car type, every fuel type, both transmissions, autopilot 0-5 -----
+
+# Sedans
+Car,2024,Camry,Toyota,4,5,5200,28500,15.8,Hybrid,Sedan,0,2
+Car,2020,Accord,Honda,4,5,41000.7,21000,14.8,Gasoline,Sedan,0,1
+Car,2014,Jetta TDI,Volkswagen,4,5,98000,9500,14.5,Diesel,Sedan,1,0
+Car,2024,EQS,Mercedes-Benz,0,5,6000,105000,0,Electric,Sedan,0,3
+
+# SUVs
+Car,2023,Model Y,Tesla,0,7,9500,47000,0,Electric,SUV,0,2
+Car,2024,Ioniq 5,Hyundai,0,5,3000,42000,0,Electric,SUV,0,2
+Car,2022,RAV4 Hybrid,Toyota,4,5,27000,30500,14.5,Hybrid,SUV,0,2
+
+# Coupes
+Car,2017,Miata,Mazda,4,2,64000,15500,11.9,Gasoline,Coupe,1,0
+Car,2019,Mustang GT,Ford,8,4,33000,31000,16,Gasoline,Coupe,1,0
+
+# Hatchbacks
+Car,2022,Golf GTI,Volkswagen,4,5,18000,27000,13.2,Gasoline,Hatchback,1,1
+Car,2023,Prius,Toyota,4,5,12000,26000,11.3,Hybrid,Hatchback,0,2
+
+# Trucks
+Car,2018,F-150,Ford,8,6,78000,26500,26,Gasoline,Truck,0,0
+Car,2021,Silverado 2500,Chevrolet,8,5,52000,39000,36,Diesel,Truck,0,1
+
+# Vans
+Car,2021,Odyssey,Honda,6,8,36000,29000,19.5,Gasoline,Van,0,1
+# year and passengers exactly at their limits (2027 and 15) - should be accepted
+Car,2027,Transit 350,Ford,6,15,0,52000,25,Gasoline,Van,0,1
+Car,2026,Robotaxi,Zoox,0,4,800,150000,0,Electric,Van,0,4
+# made-up vehicle so that one car has autopilot level 5
+Car,2027,Concept Five,Ride Match,0,4,0,250000,0,Electric,Van,0,5
+
+# extra spaces and lowercase words - should still be accepted
+ car , 2016 , Corolla , Toyota , 4 , 5 , 120000 , 9000 , 13.2 , gasoline , sedan , 0 , 0
+
+# ----- Motorcycles: every motorcycle type, gasoline and electric -----
+
+Motorcycle,2023,CBR600RR,Honda,4,2,4100,12500,4.8,Gasoline,Sport
+Motorcycle,2022,YZF-R3,Yamaha,2,2,6500,5500,3.7,Gasoline,Sport
+Motorcycle,2021,Fat Boy,Harley-Davidson,2,2,9800,21000,5,Gasoline,Cruiser
+Motorcycle,2024,Gold Wing,Honda,6,2,2100,28500,5.5,Gasoline,Touring
+Motorcycle,2019,R 1250 GS,BMW,2,2,22000,15000,5.3,Gasoline,Touring
+Motorcycle,2020,MT-07,Yamaha,2,2,15000,6800,3.7,Gasoline,Standard
+Motorcycle,2024,LiveWire One,LiveWire,0,1,1200,15000,0,Electric,Standard
+Motorcycle,2023,CRF450R,Honda,1,1,300,9800,1.7,Gasoline,Dirt
+Motorcycle,2022,FX,Zero,0,1,2400,13000,0,Electric,Dirt
+
+# ----- The lines below are wrong on purpose, to show that bad lines are -----
+# ----- skipped with a message while the rest of the file still loads.  -----
+
+# not a car or motorcycle
+Boat,2020,Sundancer,Sea Ray,8,10,300,250000,200,Gasoline,Cruiser
+# only 12 values (transmission and autopilot should both be there)
+Car,2022,Corolla Cross,Toyota,4,5,30000,21000,13.2,Gasoline,SUV,0
+# passengers written as a word
+Car,2021,Altima,Nissan,4,five,28000,19000,16.2,Gasoline,Sedan,0,1
+# year above the 2027 limit
+Car,3000,Hover Car,Future,0,4,0,90000,0,Electric,Sedan,0,5
+# fuel type that does not exist
+Car,2024,Cybertruck,Tesla,0,5,4000,80000,0,Plutonium,Truck,0,2
+# negative mileage
+Car,2019,Outback,Subaru,4,5,-500,18000,18.5,Gasoline,SUV,0,1
+# transmission must be 0 or 1
+Car,2022,Civic Type R,Honda,4,4,9000,43000,12.4,Gasoline,Coupe,2,1
+# autopilot above the level 5 limit
+Car,2023,Model X,Tesla,0,7,5000,90000,0,Electric,SUV,0,9
+# motorcycle type that does not exist
+Motorcycle,2021,Primavera,Vespa,1,2,3000,4500,2,Gasoline,Scooter
+# blank name
+Motorcycle,2022,,Ducati,2,2,4000,17000,4.2,Gasoline,Sport
