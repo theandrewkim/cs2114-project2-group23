@@ -1,12 +1,15 @@
 package rentals;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 /**
  * Console front end for Ride Match. Users add cars and motorcycles to one
- * inventory, remove them by id, list them, and stack search filters to find
- * the right rental. All vehicles live in one LinkedChain; the search methods
- * never modify it and always return a new chain of matches.
+ * inventory (by hand or from a file), update or remove them by id, list them,
+ * and stack search filters to find the right rental. All vehicles live in
+ * one LinkedChain; the search methods never modify it and always return a
+ * new chain of matches.
  *
  * @author Andrew Kim, Nikitha Nivas, Alper Sheker
  * @version Oct 14, 2026
@@ -17,6 +20,10 @@ public class RidePortal
 
     private LinkedChain<Vehicle> inventory;
     private Scanner scanner;
+
+    // number of values on one line of an import file (see importVehicles)
+    private static final int CAR_VALUES = 13;
+    private static final int MOTORCYCLE_VALUES = 11;
 
     // ~ Constructors ..........................................................
 
@@ -82,6 +89,12 @@ public class RidePortal
                 case "4":
                     searchResults();
                     break;
+                case "5":
+                    updateItem();
+                    break;
+                case "6":
+                    importItems();
+                    break;
                 case "0":
                     System.out.println(
                             "Thank you for using Ride Portal. Goodbye!");
@@ -105,6 +118,8 @@ public class RidePortal
         System.out.println("2. Remove a vehicle");
         System.out.println("3. Display all vehicles");
         System.out.println("4. Search vehicles");
+        System.out.println("5. Update a vehicle");
+        System.out.println("6. Import vehicles from a file");
         System.out.println("0. Exit");
         System.out.print("Enter your choice: ");
     }
@@ -175,33 +190,110 @@ public class RidePortal
             System.out.println("No vehicles listed");
             return;
         }
-        String input = readNonEmpty("Enter the id of the vehicle to remove: ");
-        int id;
-        try
-        {
-            id = Integer.parseInt(input);
-        }
-        catch (NumberFormatException e)
-        {
-            System.out.println("Invalid id. Returning to the main menu.");
-            return;
-        }
-
-        Vehicle match = null;
-        for (Vehicle vehicle : inventory)
-        {
-            if (vehicle.getId() == id)
-            {
-                match = vehicle;
-            }
-        }
+        Vehicle match = readVehicle("Enter the id of the vehicle to remove: ");
         if (match == null)
         {
-            System.out.println("Vehicle not found");
             return;
         }
         inventory.remove(match);
         System.out.println("Removed: " + match);
+    }
+
+
+    /**
+     * Prompts for a vehicle id, then lets the user change that vehicle's
+     * fields one at a time until they choose "Done". New values are read with
+     * the same prompt methods addItem uses, so bad input is handled the same
+     * way. An unknown id prints "Vehicle not found".
+     */
+    public void updateItem()
+    {
+        if (inventory.isEmpty())
+        {
+            System.out.println("No vehicles listed");
+            return;
+        }
+        Vehicle vehicle =
+                readVehicle("Enter the id of the vehicle to update: ");
+        if (vehicle == null)
+        {
+            return;
+        }
+        System.out.println("Updating: " + vehicle);
+        while (updateField(vehicle))
+        {
+            System.out.println("Updated: " + vehicle);
+        }
+    }
+
+
+    /**
+     * Asks for a file name and adds every vehicle listed in that file to the
+     * inventory (see importVehicles for the file format). A missing file
+     * prints "File not found".
+     */
+    public void importItems()
+    {
+        String fileName =
+                readNonEmpty("Enter the file name (e.g. vehicles.csv): ");
+        try (Scanner file = new Scanner(new File(fileName)))
+        {
+            importVehicles(file);
+        }
+        catch (FileNotFoundException e)
+        {
+            System.out.println("File not found: " + fileName);
+        }
+    }
+
+
+    /**
+     * Reads vehicles from input, one per line, and adds them to the
+     * inventory. The values on a line are separated by commas:
+     *
+     * <pre>
+     * Car,year,name,maker,cylinders,pax,mileage,price,tankSize,fuelType,
+     *     carType,transmission,autoPilot
+     * Motorcycle,year,name,maker,cylinders,pax,mileage,price,tankSize,
+     *     fuelType,motorcycleType
+     * </pre>
+     *
+     * Blank lines and lines starting with # are ignored. A line with a bad
+     * value (including a number above its limit) is skipped with a message
+     * saying why, and the other lines are still imported.
+     *
+     * @param input
+     *            where to read the lines from
+     * @return the number of vehicles imported
+     */
+    public int importVehicles(Scanner input)
+    {
+        int imported = 0;
+        int skipped = 0;
+        int lineNumber = 0;
+        while (input.hasNextLine())
+        {
+            lineNumber++;
+            // files saved by Excel can start with an invisible marker
+            String line = input.nextLine().replace("﻿", "").trim();
+            if (!line.isEmpty() && !line.startsWith("#"))
+            {
+                try
+                {
+                    inventory.add(parseVehicle(line));
+                    imported++;
+                }
+                catch (IllegalArgumentException e)
+                {
+                    System.out.println(
+                            "Line " + lineNumber + " skipped: " + e.getMessage());
+                    skipped++;
+                }
+            }
+        }
+        System.out.println("Imported " + imported + " vehicle(s), skipped "
+                + skipped + " line(s).");
+        return imported;
     }
 
 
@@ -249,6 +341,10 @@ public class RidePortal
         {
             results = filtered;
             System.out.println(results.size() + " vehicle(s) match so far.");
+            for (Vehicle vehicle : results)
+            {
+                System.out.println(vehicle);
+            }
             filtered = results.isEmpty() ? null : searchBy(results);
         }
 
@@ -257,11 +353,9 @@ public class RidePortal
         {
             System.out.println("No matching vehicles found");
         }
-        for (Vehicle vehicle : results)
-        {
-            System.out.println(vehicle);
-        }
+        
         return results;
+        
     }
 
 
@@ -704,14 +798,14 @@ public class RidePortal
     }
 
     /*
-     * Prompt methods, used by addItem and searchBy. Each one keeps asking
-     * until it gets a usable value. Numbers below the minimum are re-prompted;
-     * numbers above the maximum are capped to the maximum.
+     * Prompt methods, used by addItem, updateItem and searchBy. Each one keeps
+     * asking until it gets a usable value, so numbers below the minimum or
+     * above the maximum are asked for again.
      */
 
     /**
-     * Reads a whole-number year. Text or decimals (e.g. 2022.5) and years
-     * below MIN_YEAR re-prompt; years above MAX_YEAR are capped.
+     * Reads a whole-number year. Text, decimals (e.g. 2022.5) and years
+     * outside MIN_YEAR to MAX_YEAR re-prompt.
      *
      * @return the year entered
      */
@@ -746,7 +840,7 @@ public class RidePortal
 
     /**
      * Reads a cylinder count (0 for electric). Negative or non-integer input
-     * re-prompts; values above MAX_CYLINDERS are capped.
+     * and values above MAX_CYLINDERS re-prompt.
      *
      * @return the number of cylinders entered
      */
@@ -758,8 +852,8 @@ public class RidePortal
 
 
     /**
-     * Reads a passenger count. Below 1 or non-integer input re-prompts;
-     * values above MAX_PAX are capped.
+     * Reads a passenger count. Non-integer input and values below 1 or above
+     * MAX_PAX re-prompt.
      *
      * @return the number of passengers entered
      */
@@ -770,8 +864,8 @@ public class RidePortal
 
 
     /**
-     * Reads a mileage. Negative or non-number input re-prompts; values above
-     * MAX_MILEAGE are capped.
+     * Reads a mileage. Negative or non-number input and values above
+     * MAX_MILEAGE re-prompt.
      *
      * @return the mileage entered
      */
@@ -782,8 +876,8 @@ public class RidePortal
 
 
     /**
-     * Reads a price. Negative or non-number input re-prompts; values above
-     * MAX_PRICE are capped.
+     * Reads a price. Negative or non-number input and values above MAX_PRICE
+     * re-prompt.
      *
      * @return the price entered
      */
@@ -795,7 +889,7 @@ public class RidePortal
 
     /**
      * Reads a tank size in gallons (decimals allowed). Negative or non-number
-     * input re-prompts; values above MAX_TANK are capped.
+     * input and values above MAX_TANK re-prompt.
      *
      * @return the tank size entered
      */
@@ -865,8 +959,8 @@ public class RidePortal
 
 
     /**
-     * Reads an autopilot level. Negative or non-integer input re-prompts;
-     * values above Car.MAX_AUTOPILOT are capped.
+     * Reads an autopilot level. Negative or non-integer input and values
+     * above Car.MAX_AUTOPILOT re-prompt.
      *
      * @return the autopilot level entered
      */
@@ -901,16 +995,16 @@ public class RidePortal
 
 
     /**
-     * Reads a whole number. Non-integers and values below min re-prompt;
-     * values above max are capped to max.
+     * Reads a whole number. Non-integers and values below min or above max
+     * re-prompt.
      *
      * @param msg
      *            the prompt to show
      * @param min
      *            the smallest value accepted
      * @param max
-     *            the largest value returned
-     * @return the number entered, capped at max
+     *            the largest value accepted
+     * @return the number entered
      */
     private int readInt(String msg, int min, int max)
     {
@@ -934,8 +1028,8 @@ public class RidePortal
             }
             if (value > max)
             {
-                System.out.println("Value above limit; capped at " + max + ".");
-                return max;
+                System.out.println("Value must be at most " + max + ".");
+                continue;
             }
             return value;
         }
@@ -943,16 +1037,16 @@ public class RidePortal
 
 
     /**
-     * Reads a number (decimals allowed). Non-numbers and values below min
-     * re-prompt; values above max are capped to max.
+     * Reads a number (decimals allowed). Non-numbers and values below min or
+     * above max re-prompt.
      *
      * @param msg
      *            the prompt to show
      * @param min
      *            the smallest value accepted
      * @param max
-     *            the largest value returned
-     * @return the number entered, capped at max
+     *            the largest value accepted
+     * @return the number entered
      */
     private double readDouble(String msg, double min, double max)
     {
@@ -981,8 +1075,8 @@ public class RidePortal
             }
             if (value > max)
             {
-                System.out.println("Value above limit; capped at " + max + ".");
-                return max;
+                System.out.println("Value must be at most " + max + ".");
+                continue;
             }
             return value;
         }
@@ -1039,5 +1133,271 @@ public class RidePortal
             }
             System.out.println("Please enter y or n.");
         }
+    }
+
+
+    /**
+     * Reads a vehicle id and finds that vehicle in the inventory. Prints a
+     * message if the id is not a number or no vehicle has it.
+     *
+     * @param msg
+     *            the prompt to show
+     * @return the vehicle with that id, or null if there is none
+     */
+    private Vehicle readVehicle(String msg)
+    {
+        String input = readNonEmpty(msg);
+        int id;
+        try
+        {
+            id = Integer.parseInt(input);
+        }
+        catch (NumberFormatException e)
+        {
+            System.out.println("Invalid id. Returning to the main menu.");
+            return null;
+        }
+        for (Vehicle vehicle : inventory)
+        {
+            if (vehicle.getId() == id)
+            {
+                return vehicle;
+            }
+        }
+        System.out.println("Vehicle not found");
+        return null;
+    }
+
+    // ~ Private Methods (used by updateItem) ..................................
+
+    /**
+     * Shows the fields that can be changed, reads a choice, and sets that
+     * field to a new value read with the matching prompt method. Car-only
+     * fields are listed only for cars, and the motorcycle type only for
+     * motorcycles. An invalid choice re-prompts.
+     *
+     * @param vehicle
+     *            the vehicle to change
+     * @return true if a field was changed, or false if the user chose "Done"
+     */
+    private boolean updateField(Vehicle vehicle)
+    {
+        boolean isCar = vehicle instanceof Car;
+        while (true)
+        {
+            System.out.println();
+            System.out.println("===== Update Fields =====");
+            System.out.println("1. Year");
+            System.out.println("2. Name");
+            System.out.println("3. Maker");
+            System.out.println("4. Cylinders");
+            System.out.println("5. Passengers");
+            System.out.println("6. Mileage");
+            System.out.println("7. Price");
+            System.out.println("8. Tank size");
+            System.out.println("9. Fuel type");
+            if (isCar)
+            {
+                System.out.println("10. Car type");
+                System.out.println("11. Transmission");
+                System.out.println("12. Autopilot level");
+            }
+            else
+            {
+                System.out.println("10. Motorcycle type");
+            }
+            System.out.println("0. Done");
+            System.out.print("Choose a field to change: ");
+            String choice = scanner.nextLine().trim();
+
+            switch (choice)
+            {
+                case "0":
+                    return false;
+                case "1":
+                    vehicle.setYear(promptYear());
+                    return true;
+                case "2":
+                    vehicle.setName(promptName());
+                    return true;
+                case "3":
+                    vehicle.setMaker(promptMaker());
+                    return true;
+                case "4":
+                    vehicle.setCylinders(promptCylinder());
+                    return true;
+                case "5":
+                    vehicle.setPax(promptPax());
+                    return true;
+                case "6":
+                    vehicle.setMileage(promptMileage());
+                    return true;
+                case "7":
+                    vehicle.setPrice(promptPrice());
+                    return true;
+                case "8":
+                    vehicle.setTankSize(promptTank());
+                    return true;
+                case "9":
+                    vehicle.setFuelType(promptFuel());
+                    return true;
+                case "10":
+                    if (isCar)
+                    {
+                        ((Car)vehicle).setCarType(promptCarType());
+                    }
+                    else
+                    {
+                        ((Motorcycle)vehicle).setMotorcycleType(
+                                promptMotorcycleType());
+                    }
+                    return true;
+                case "11":
+                    if (isCar)
+                    {
+                        ((Car)vehicle).setTransmission(promptTrans());
+                        return true;
+                    }
+                    break;
+                case "12":
+                    if (isCar)
+                    {
+                        ((Car)vehicle).setAutoPilot(promptAuto());
+                        return true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            System.out.println("Invalid option. Please try again.");
+        }
+    }
+
+    // ~ Private Methods (used by importVehicles) ..............................
+
+    /**
+     * Builds a Car or Motorcycle from one line of an import file. The
+     * Vehicle, Car and Motorcycle setters check every value, so a bad value
+     * throws the same IllegalArgumentException it would anywhere else.
+     *
+     * @param line
+     *            the comma-separated values
+     * @return the new vehicle
+     * @throws IllegalArgumentException
+     *             if the line has the wrong number of values or a bad value
+     */
+    private Vehicle parseVehicle(String line)
+    {
+        String[] parts = line.split(",", -1);
+        for (int i = 0; i < parts.length; i++)
+        {
+            parts[i] = parts[i].trim();
+        }
+        boolean isCar = parts[0].equalsIgnoreCase("Car");
+        if (!isCar && !parts[0].equalsIgnoreCase("Motorcycle"))
+        {
+            throw new IllegalArgumentException(
+                    "Type must be Car or Motorcycle, not \"" + parts[0] + "\"");
+        }
+        int expected = isCar ? CAR_VALUES : MOTORCYCLE_VALUES;
+        if (parts.length != expected)
+        {
+            throw new IllegalArgumentException("A " + parts[0].toLowerCase()
+                    + " needs " + expected + " values, but this line has "
+                    + parts.length);
+        }
+
+        int year = toWholeNumber(parts[1], "Year", Vehicle.MAX_YEAR);
+        int cylinders =
+                toWholeNumber(parts[4], "Cylinders", Vehicle.MAX_CYLINDERS);
+        int pax = toWholeNumber(parts[5], "Passengers", Vehicle.MAX_PAX);
+        double mileage = toNumber(parts[6], "Mileage", Vehicle.MAX_MILEAGE);
+        double price = toNumber(parts[7], "Price", Vehicle.MAX_PRICE);
+        double tankSize = toNumber(parts[8], "Tank size", Vehicle.MAX_TANK);
+
+        if (!isCar)
+        {
+            return new Motorcycle(year, parts[2], parts[3], cylinders, pax,
+                    mileage, price, tankSize, parts[9], parts[10]);
+        }
+        // setTransmission checks that this is 0 or 1
+        int transmission =
+                toWholeNumber(parts[11], "Transmission", Integer.MAX_VALUE);
+        int autoPilot =
+                toWholeNumber(parts[12], "Autopilot level", Car.MAX_AUTOPILOT);
+        return new Car(year, parts[2], parts[3], cylinders, pax, mileage,
+                price, tankSize, parts[9], parts[10], transmission, autoPilot);
+    }
+
+
+    /**
+     * Turns one value from an import line into a whole number.
+     *
+     * @param text
+     *            the value as written in the file
+     * @param label
+     *            what the value is, used in messages
+     * @param max
+     *            the largest value allowed
+     * @return the number
+     * @throws IllegalArgumentException
+     *             if text is not a whole number or is above max
+     */
+    private int toWholeNumber(String text, String label, int max)
+    {
+        int value;
+        try
+        {
+            value = Integer.parseInt(text);
+        }
+        catch (NumberFormatException e)
+        {
+            throw new IllegalArgumentException(
+                    label + " must be a whole number, not \"" + text + "\"");
+        }
+        if (value > max)
+        {
+            throw new IllegalArgumentException(
+                    label + " must be at most " + max + ", not " + text);
+        }
+        return value;
+    }
+
+
+    /**
+     * Turns one value from an import line into a number (decimals allowed).
+     *
+     * @param text
+     *            the value as written in the file
+     * @param label
+     *            what the value is, used in messages
+     * @param max
+     *            the largest value allowed
+     * @return the number
+     * @throws IllegalArgumentException
+     *             if text is not a number or is above max
+     */
+    private double toNumber(String text, String label, double max)
+    {
+        double value;
+        try
+        {
+            value = Double.parseDouble(text);
+        }
+        catch (NumberFormatException e)
+        {
+            value = Double.NaN;
+        }
+        if (Double.isNaN(value))
+        {
+            throw new IllegalArgumentException(
+                    label + " must be a number, not \"" + text + "\"");
+        }
+        if (value > max)
+        {
+            throw new IllegalArgumentException(
+                    label + " must be at most " + max + ", not " + text);
+        }
+        return value;
     }
 }

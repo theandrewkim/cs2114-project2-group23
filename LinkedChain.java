@@ -357,6 +357,7 @@ public class LinkedChain<T>
         @Override
         public boolean hasNext()
         {
+            
             return nextNode != null;
         }
 
